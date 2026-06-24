@@ -15,13 +15,26 @@ Interactive visualisation of the 2026 FIFA World Cup tracking player "exports": 
 
 ## Architecture
 
-```
-mundial-build                mundial
-  pipeline/ ──writes──▶ data/ (submodule)◀──reads── frontend (JS)
-                          │
-                    mundial-data repo
-                          │
-mundial-server ◀──Socket.IO──▶ auth-bar.js
-```
+```mermaid
+graph LR
+    subgraph mundial-build
+        pipeline[Pipeline<br/>Python scrapers]
+    end
 
-The **pipeline** (mundial-build) scrapes player data, Elo ratings, and economic indicators, then writes JSON output to the **data** submodule. The **frontend** (mundial) fetches these files at runtime to render the map. The **backend** (mundial-server) handles authentication and live game updates via WebSocket.
+    subgraph mundial-data
+        data[(JSON / GeoJSON)]
+    end
+
+    subgraph mundial
+        frontend[Frontend<br/>D3.js + lit-html]
+    end
+
+    subgraph mundial-server
+        backend[Backend<br/>Flask + Socket.IO]
+    end
+
+    pipeline -- writes --> data
+    data -- submodule --> frontend
+    data -- submodule --> pipeline
+    backend <-- WebSocket --> frontend
+```
