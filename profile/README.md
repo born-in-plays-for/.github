@@ -43,17 +43,19 @@ graph LR
 
 ```mermaid
 graph LR
-    A["⏰ daily 07:00 UTC<br/><b>mundial-build</b><br/>Update Elo Rankings"] -- pushes JSON --> B["<b>mundial-data</b>"]
+    A["⏰ Daily<br/><b>mundial-build</b><br/>Update Elo Rankings"] -- pushes JSON --> B["<b>mundial-data</b>"]
     A -- repository_dispatch --> C["<b>mundial</b><br/>Update data submodule"]
     C -- pulls latest --> B
-    C -- push triggers --> D["<b>mundial</b><br/>Deploy to GitHub Pages"]
+    C -- repository_dispatch --> D["<b>mundial</b><br/>Deploy to GitHub Pages"]
     D -- publishes --> E["mundial.cthiebaud.com"]
 ```
 
 | Workflow | Repo | Trigger | What it does |
 |---|---|---|---|
-| Update Elo Rankings | mundial-build | Daily 07:00 UTC / manual | Scrapes eloratings.net, pushes to mundial-data, dispatches to mundial |
-| Update data submodule | mundial | `repository_dispatch` / manual | Pulls latest mundial-data, commits new submodule pointer |
-| Deploy to GitHub Pages | mundial | Push to main / manual | Deploys site (data submodule cached for fast code-only deploys) |
+| Update Elo Rankings | mundial-build | Daily / manual | Scrapes eloratings.net, pushes to mundial-data, dispatches to mundial |
+| Update data submodule | mundial | `repository_dispatch` / manual | Pulls latest mundial-data, commits new submodule pointer, triggers deploy |
+| Deploy to GitHub Pages | mundial | `repository_dispatch` from Update data submodule / Push to main / manual | Deploys site (data submodule cached for fast code-only deploys) |
+
+**Automated flow**: The entire pipeline from Elo update through live site deployment is fully automated. New Elo data triggers a dispatch to `mundial` → submodule updates → GitHub Pages redeploys with new data — no manual steps required.
 
 Cross-repo actions use a fine-grained PAT (`MUNDIAL_DISPATCH_TOKEN` secret on mundial-build) with Contents write access to mundial and mundial-data.
